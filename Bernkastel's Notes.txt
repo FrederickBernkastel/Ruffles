@@ -1,0 +1,141 @@
+
+
+Analysis
+	Noise Reduction
+		We first begin by defining the characteristics of Fake News, and claim that without these characteristics, an exerpt cannot be classed as such, or become ineffective to the point that we can safely ignore it
+		
+		Characteristics
+			A statement of fact
+				Fake news must appear to be fact. Opinions ("I think that the earth is flat") are not fake news even if they have no basis in reality, unless it is a statement of fact about a third party's opinion ("Trump thinks that the earth is flat")
+				This author predicts that opinions can be flagged with a reasonably high degree of accuracy using a BOW model, due to the tendency of keywords (if,think,I) 
+				All posts which are automatically flagged as a non-fact, can be marked as an opinion to human users
+
+			Tendency to become viral
+				Fake news must have the potential to become viral, or it will be insignificant
+
+			Tendency to be harmful
+				Fake news must damage the reputation of a named entity (Pope / Starbucks), or a group of people (Immigrants / Chinese)
+				Under this definition, posts which do not attack a named entity or sub-group of humans, such as alternative facts (Global warming) are not classed as harmful
+				Limitation
+					Stock market crash is harmful
+
+		Limitations
+			Hybrid truth
+				Fake news can quote a person out of context and assert their opinion using these quotes as a basis
+
+			Denial in news
+				A politician denies accusations in news (Richard Nixon denied his involvement in Watergate)
+
+			Many Unverified Posts
+
+
+	Strategy
+		Assumption
+			Posts about oneself are unlikely to be viral
+			The number of sub-groups of viral posts are small enough to be able to be checked manually, and a coordinated spam attack is unlikely to be successful given modern broadcasting spam detection techniques (> 99%)
+				https://www.sciencedirect.com/science/article/pii/S0925231215002106
+			? Ability to access relevant dataset
+
+		Executive Summary
+			This method recogonizes that fake news cannot be classified as such based solely upon its content (Elon Musk and the flying car). The same words can also be real or fake depending on context (LKY is president of Singapore).
+			It is thus more reliable to implement a system of verification, by grouping similar posts together, and cross checking with trusted sources.
+
+			Group all posts into the following categories:
+				Opinion / Personal					Likely Non-fact
+				Verifitable Fake News 				Likely fact, Likely Viral, Likely fake
+				Verified by: XXX 					Likely fact, Likely Viral, Likely not fake, likely real
+				Unverified 							Likely fact, (Likely not viral or (Likely not fake, likely not real))
+
+			Algorithms
+				AI
+					Passive Reinforcement Learning for viral classification
+					? Post - Article correlation
+					? Post - Post correlation
+				Techinical
+					Post feature extraction
+					Article feature extraction
+
+
+		Step Breakdown
+			Crunch posts which are likely to be viral
+				Train algorithm first on a data set
+				Continuously train algorithm on post that becomes viral using Passive Reinforcement Learning
+				Demonstrate Proof of Concept
+
+			Fake News correlation
+				Check if viral post has appeared on a fake news site before (all news).
+				Need to check if sentiment matches
+
+			News correlation
+				Check if viral post has recently appeared on the news (< 1 month). Old news can be omitted as they are likely to be quoted out of context.
+				Need to check if sentiment matches
+
+			Fact checking
+				Flag similar viral posts together, and send to fact checking website if not classified as news or fake news after it has passed a "virality threshold"
+				The usage of a threshold will either:
+					Flag bots sharing amongst each other to overwhelm fact checking services
+					Flag posts which are shared amongst humans, which post an identifiable threat
+
+
+
+
+T = Text of Post
+V = Post becoming viral
+F = Post being fake
+N = Post correlated with news on trusted sites
+O = Post being an opinion, not fact
+
+Assumption
+	P(¬F | N) ~= 1
+	P(F | N) ~= 0
+	P(F | ¬N, V) ~= 1
+	P(N | V, ¬F) ~= 1
+
+P(V | T)
+P(N | V)
+
+Examine only viral texts
+P(F | V) = P(F | ¬N) (P(¬N | V) + P(¬N | ¬V)) + P(F | N) (P(N | V) + P(N | ¬V))
+P(F | V) = P(F | ¬N) P(¬N | V) + P(F | N) P(N | V)
+P(F | V) = P(F | ¬N) P(¬N | V)
+
+Strategy 2
+	Executive Summary
+		Chatbot which responds to a question, primarily for group chats
+
+	Context
+		Fake news is moving into messaging group, where discussion is less regulated and like-minded people are less likely to rebut them
+
+		BBC
+			https://www.bbc.com/news/technology-44457167
+
+			Digital News Report
+				http://www.digitalnewsreport.org/
+
+	Proposal
+		Chatbot which responds to a question / statement posed to it (@SauceMaster), with a link to a relevant article
+
+		Take in input inquiry, search keywords in news with article to words network
+
+
+
+
+	Leads
+		TextBlob
+			Python library to extract pronoun, noun, adjective and verb
+			https://apps.worldwritable.com/tutorials/chatbot/
+
+		Telegram bot
+			https://github.com/python-telegram-bot/python-telegram-bot/wiki/Introduction-to-the-API
+
+	Progress
+		Telegram Bot
+			Name
+				SaucePlz
+				SaucePlzBot
+
+			HTTP API token
+				578916903:AAGoabI2IFRwP20pwm7NkgKz0XU5_3GWshg
+		POS Tagging
+			WordBlob (POS + NER) + nltk (Stop-words)
+
