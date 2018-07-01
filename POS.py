@@ -17,7 +17,7 @@ from nltk.corpus import stopwords
 """
 nltk.download('stopwords')
 """
-DEBUG = True
+DEBUG = False
 STOP_WORDS = ['we','shall','today',"'s"]
 STOP_WORDS += stopwords.words('english')
 # For a full list of tags, refer to https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
