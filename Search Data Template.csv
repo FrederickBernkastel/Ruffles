@@ -1,0 +1,6 @@
+﻿Word,Tag,Weight,Link,DateCreated,,REMOVE this row when deploying
+fox,NN,3,www.link.com,17/1/2017,,
+quick,JJ,1,www.link.com,17/1/2017,,
+Very Good Thing,NNP,4,www.link.com,17/1/2017,,
+fox,NN,3,www.zelda.com,17/3/2017,,
+quick,JJ,1,www.zelda.com,17/3/2017,,

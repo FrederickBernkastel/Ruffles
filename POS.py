@@ -3,6 +3,11 @@
     Dependencies
         nltk
         textblob
+    Usage
+        POS(String string,boolean article=False)
+            string      String of sentence(s)
+            article     Set to true if processing long text. This removes word nodes of frequency 1.
+            
 """
 """
     Constants definition
@@ -37,10 +42,13 @@ NON_KEYWORD_TAGS = [
 from textblob import TextBlob
 from textblob import Word
 # Main POS function
-def POS(string):
+def POS(string,article=False):
     blob = TextBlob(string)
     tags = process_tags(blob.tags)
-    weighted_tags = {(word,tag):freq for (word,tag),freq in tags.items() if tags[(word,tag)]>1}
+    if not article:
+        weighted_tags = tags
+    else:
+        weighted_tags = {(word,tag):freq for (word,tag),freq in tags.items() if tags[(word,tag)]>1}
     
     if DEBUG:
         print("\nWeighted Nodes")
@@ -91,7 +99,8 @@ def process_tags(word_tup_l):
     
 
 # POS Example
-POS("""
+#POS(
+"""
 Last Saturday, 12 young boys went to explore a cave with their coach after football practice in northern Thailand.
 
 Their bikes were found abandoned at the entrance and shortly after, heavy rain sent torrents of water through the cave.
@@ -110,7 +119,8 @@ The divers are swimming through tiny spaces and cannot risk going too far into f
 The search has been frustrated by rushing water and near darkness inside the cave. Debris and mud leaves divers with almost no visibility; they can only see a few centimetres in front of them.
 
 It's been described as like swimming through cold coffee. 
-""")
+"""
+#)
 
 """
     End of Part-of-Speech Tagger
