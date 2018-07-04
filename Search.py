@@ -5,6 +5,7 @@
     Dependencies
         csv
         datetime
+        numpy
     Requirements
         POS.py file
         .csv file with processed articles
@@ -17,7 +18,6 @@ FILE_NAME = "Search Data.csv"
 FILE_ENCODING = "UTF-8-sig"
 RECENT_DAYS = 30
 DATA_NUM_OF_COLS = 5
-DATA_MAX_WEIGHT = 50
 STARTING_ENERGY = 10000
 THRESHOLD = 1
 DEGREE_INCREMENT = .1
@@ -27,6 +27,7 @@ DEGREE_INCREMENT = .1
 """
 import POS
 import csv
+import numpy as np
 from datetime import date
 """
     Notes
@@ -52,35 +53,42 @@ class Node:
 class Graph:
     def __init__(
             self,
-            dataMaxWeight = DATA_MAX_WEIGHT,
             dataNumOfCols = DATA_NUM_OF_COLS,
             recentDays = RECENT_DAYS
             ):
         self.node_d = {}
-        self.dataMaxWeight = dataMaxWeight
         self.dataNumOfCols = dataNumOfCols
         self.recentDays = recentDays
         
     # Creates graph of nodes
-    def processNodes(self,csvReader):
+    def processNodes(self,csvFile,csvReader):
+        # Extract weights for softmax
+        weight_l = []
         for row in csvReader:
-            self.__processNode(row)
+            weight_l.append(int(row[2]))
+        weight_l = np.asarray(weight_l)
+        softmax_denom = np.sum(np.exp(weight_l))
+        
+        
+        csvFile.seek(0)
+        for row in csvReader:
+            self.__processNode(row,softmax_denom)
+            
         # Sorts all adjacent nodes for every node (for faster search traversal)
         self.__postProcessNodes()
         
         
         
     # Factory method to create / update a single Node
-    def __processNode(self,row_l):
+    def __processNode(self,row_l,softmax_denom):
         if len(row_l) != self.dataNumOfCols:
             raise Exception("Unknown file format with wrong number of columns")
         word,tag,weight,link,dateCreated = row_l
         # pre-process data
-        weight = int(weight) / self.dataMaxWeight
+        weight = np.exp(int(weight)) / softmax_denom
         dateCreated = [int(item) for item in dateCreated.split("/")]
         dateCreated = date(dateCreated[2],dateCreated[1],dateCreated[0])
         
-
         # Check if dateCreated is recent
         if (dateCreated - date.today()).days > self.recentDays:
             return None
@@ -99,7 +107,10 @@ class Graph:
         wordNode.update(documentNode,weight)
         documentNode.update(wordNode,weight)
     
-    # TODO: Function to search graph using Contextual Network Search
+
+        
+    
+    # Function to search graph using Contextual Network Search
     # This graph only returns the most likely known document, and additional checks on the content is required
     # If there are two equally likely documents, one is returned at random
     """
@@ -187,7 +198,7 @@ def load_csv(f = FILE_NAME,enc = FILE_ENCODING):
     with open(f, encoding = enc) as csvFile:
         csvReader = csv.reader(csvFile)
         graph = Graph()
-        graph.processNodes(csvReader)
+        graph.processNodes(csvFile,csvReader)
     if DEBUG:
         print(graph)
     return graph
