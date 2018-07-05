@@ -30,7 +30,8 @@ class Scraper:
 
 		return sanitisedLinkList
 
-# testing of scraper
-scrape = Scraper("https://www.singaporetech.edu.sg/")
-print scrape.scrapeLinks()
+
+# # testing of scraper
+# scrape = Scraper("https://www.singaporetech.edu.sg/")
+# print scrape.scrapeLinks()
 
