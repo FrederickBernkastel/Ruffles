@@ -18,7 +18,6 @@ class Scraper:
 		tagList = []
 		for item in self.content.select(tag):
 			tagList.append(item)
-			print item
 		return tagList
 
 	# todo to filter out those without http infront of the link
@@ -26,27 +25,57 @@ class Scraper:
 		sanitisedLinkList = []
 		unsanitisedLinkList = self.content.find_all('a')
 		for a in unsanitisedLinkList:
-			sanitisedLinkList.append(a.get("href"))
+
+			item = a.get("href")
+			if not "http" in item:
+				item = "http://www.bbc.com" + item
+				
+			sanitisedLinkList.append(item)
+			print item
 
 		return sanitisedLinkList
 
 	def scrapeBBCNewsArticle(self):
 		listOfKnownHeaders = ["ideas-page__header", "story-body__h1"]
+		filteredData = ["Email", "Facebook", "Messenger", "Twitter", "Pinterest", "Whatsapp", "LinkedIn"]
 
 		h1List = []
 		title = ""
 		contents = []
 		date = ""
 
+		dict = {}
+
 		h1List = self.scrape('h1')
+		print h1List
 
 		for item in h1List:
-			if "story-body__h1" in item:
+			title = item.encode_contents()
+			if listOfKnownHeaders in item:
+				print item.encode_contents()
 				title = item.encode_contents()
+				
+		tempContent = self.scrape('p')
+		for node in self.content.findAll('p'):
+			contents.append(node.findAll(text=True))
 
-		contents = self.scrape('a')
+		tempDivContents = self.content.findAll('div')
+		for node in tempDivContents:
+			if node.get("data-datetime") is not None:
+				date = node.get("data-datetime")
+				break
 
+		dict["title"] = title
+		dict["content"] = contents
+		dict["date_created"] = date
+
+		return dict
 
 	def defineTimeFromBBCNewsArticle(self, timeFormat):
 		pass
 
+
+if __name__ == '__main__':
+	scraper = Scraper("https://www.bbc.com/news/world-asia-44757804")
+	dictionary = scraper.scrapeBBCNewsArticle()
+	print dictionary
