@@ -21,17 +21,32 @@ class Scraper:
 			print item
 		return tagList
 
-	#todo to filter out those without http infront of the link
+	# todo to filter out those without http infront of the link
 	def scrapeLinks(self):
 		sanitisedLinkList = []
 		unsanitisedLinkList = self.content.find_all('a')
 		for a in unsanitisedLinkList:
-			sanitisedLinkList.append(a.get("href"))		
+			sanitisedLinkList.append(a.get("href"))
 
 		return sanitisedLinkList
 
+	def scrapeBBCNewsArticle(self):
+		listOfKnownHeaders = ["ideas-page__header", "story-body__h1"]
 
-# # testing of scraper
-# scrape = Scraper("https://www.singaporetech.edu.sg/")
-# print scrape.scrapeLinks()
+		h1List = []
+		title = ""
+		contents = []
+		date = ""
+
+		h1List = self.scrape('h1')
+
+		for item in h1List:
+			if "story-body__h1" in item:
+				title = item.encode_contents()
+
+		contents = self.scrape('a')
+
+
+	def defineTimeFromBBCNewsArticle(self, timeFormat):
+		pass
 
