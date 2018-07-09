@@ -12,28 +12,33 @@ class Scraper:
 		self.content = self.store(link)
 
 	def store(self, link):
-		return BeautifulSoup(urllib2.urlopen(link).read(), 'html.parser')
-
+		try:
+			return BeautifulSoup(urllib2.build_opener(urllib2.HTTPCookieProcessor).open(link),'html.parser')
+		except ValueError as e:
+			return None
+		
 	def scrape(self, tag):
 		tagList = []
-		for item in self.content.select(tag):
-			tagList.append(item)
+		if self.content is not None:
+			for item in self.content.select(tag):
+				tagList.append(item)
 		return tagList
 
 	# todo to filter out those without http infront of the link
 	def scrapeLinks(self):
 		sanitisedLinkList = []
-		unsanitisedLinkList = self.content.find_all('a')
-		for a in unsanitisedLinkList:
 
-			item = a.get("href")
-			if not "http" in item:
-				item = "http://www.bbc.com" + item
-				
-			sanitisedLinkList.append(item)
-			print item
+		if self.content is not None:
+			unsanitisedLinkList = self.content.find_all('a')
+			for a in unsanitisedLinkList:
+				item = a.get("href")
+				if item is not None:
+					if not "http" in item:
+						item = "http://www.bbc.com" + item
+					sanitisedLinkList.append(item)
+			return sanitisedLinkList
 
-		return sanitisedLinkList
+		return None
 
 	def scrapeBBCNewsArticle(self):
 		listOfKnownHeaders = ["ideas-page__header", "story-body__h1"]
@@ -56,24 +61,22 @@ class Scraper:
 				title = item.encode_contents()
 				
 		tempContent = self.scrape('p')
-		for node in self.content.findAll('p'):
-			contents.append(node.findAll(text=True))
+		if self.content is not None:
+			for node in self.content.findAll('p'):
+				contents.append(node.findAll(text=True))
 
-		tempDivContents = self.content.findAll('div')
-		for node in tempDivContents:
-			if node.get("data-datetime") is not None:
-				date = node.get("data-datetime")
-				break
+			tempDivContents = self.content.findAll('div')
+			for node in tempDivContents:
+				if node.get("data-datetime") is not None:
+					date = node.get("data-datetime")
+					break
 
-		dict["title"] = title
-		dict["content"] = contents
-		dict["date_created"] = date
+			dict["title"] = title
+			dict["content"] = contents
+			dict["date_created"] = date
+			return dict
 
-		return dict
-
-	def defineTimeFromBBCNewsArticle(self, timeFormat):
-		pass
-
+		return None
 
 if __name__ == '__main__':
 	scraper = Scraper("https://www.bbc.com/news/world-asia-44757804")

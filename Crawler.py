@@ -5,20 +5,28 @@ class Crawler:
 		self.link = link
 		self.depth = depth
 		self.contents = []
+		self.linksCrawled = []
 
-	def start():
-		self.crawl(self.link, self.depth)
+	def start(self):
+		self.crawl(self.link, 0)
 
-	def getContents():
+	def getContents(self):
 		return self.contents
 
 	def crawl(self, link, depth):
 		if depth < self.depth:
 			scraper = Scraper(link)
-			hyperlinkList = scraper.scrapeLinks()
+			hyperLinkList = scraper.scrapeLinks()
 			articleDictionary = scraper.scrapeBBCNewsArticle()
 
-			self.append(articleDictionary)
+			self.contents.append(articleDictionary)
+			self.linksCrawled.append(link)
+			if hyperLinkList is not None:
+				for link in hyperLinkList:
+					print "Depth of " + str(depth) + " @ link: " + link  
+					if link not in self.linksCrawled:
+						self.crawl(link, 0 + 1)
+			
 
-			for link in hyperLinkList:
-				self.crawl(link, 0)
+crawler = Crawler("http://www.bbc.com", 2)
+crawler.start()
