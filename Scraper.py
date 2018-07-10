@@ -5,11 +5,11 @@ from bs4 import BeautifulSoup
 import urllib2
 
 # pip install BeautifulSoup4
-
 class Scraper:
-	def __init__(self, link):
+	def __init__(self, link, keyword):
 		self.link = link
 		self.content = self.store(link)
+		self.keyword = keyword
 
 	def store(self, link):
 		try:
@@ -63,7 +63,9 @@ class Scraper:
 		tempContent = self.scrape('p')
 		if self.content is not None:
 			for node in self.content.findAll('p'):
-				contents.append(node.findAll(text=True))
+				paragraph = node.findAll(text=True)
+				if self.checkIfContainsKeywordPerParagraph(paragraph):
+					contents.append(node.findAll(text=True))
 
 			tempDivContents = self.content.findAll('div')
 			for node in tempDivContents:
@@ -77,6 +79,14 @@ class Scraper:
 			return dict
 
 		return None
+
+
+	def checkIfContainsKeywordPerParagraph(self, sentence):
+		#to lower
+		if self.keyword in sentence:
+			return True
+		else:
+			return False
 
 if __name__ == '__main__':
 	scraper = Scraper("https://www.bbc.com/news/world-asia-44757804")
