@@ -1,21 +1,21 @@
 from Scraper import Scraper
 
 class Crawler:
-	def __init__(self, link, depth):
+	def __init__(self, link, depth, keyword):
 		self.link = link
 		self.depth = depth
 		self.contents = []
 		self.linksCrawled = []
 
 	def start(self):
-		self.crawl(self.link, 0)
+		self.crawl(self.link, 0, keyword)
 
 	def getContents(self):
 		return self.contents
 
-	def crawl(self, link, depth):
+	def crawl(self, link, depth, keyword):
 		if depth < self.depth:
-			scraper = Scraper(link)
+			scraper = Scraper(link, keyword)
 			hyperLinkList = scraper.scrapeLinks()
 			articleDictionary = scraper.scrapeBBCNewsArticle()
 
