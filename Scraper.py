@@ -3,8 +3,10 @@ from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup
 import urllib2
+import httplib
 
 # pip install BeautifulSoup4
+
 class Scraper:
 	def __init__(self, link, keyword):
 		self.link = link
@@ -13,28 +15,36 @@ class Scraper:
 
 	def store(self, link):
 		try:
-			return BeautifulSoup(urllib2.build_opener(urllib2.HTTPCookieProcessor).open(link),'html.parser')
-		except ValueError as e:
+			bs = BeautifulSoup(urllib2.build_opener(urllib2.HTTPCookieProcessor).open(link),'html.parser')
+			return bs
+		except urllib2.HTTPError,e:
 			return None
-		
+		except urllib2.URLError, e:
+			return None
+		except ValueError:
+			return None
+
 	def scrape(self, tag):
 		tagList = []
 		if self.content is not None:
-			for item in self.content.select(tag):
-				tagList.append(item)
+			for node in self.content.findAll(tag):
+				paragraph = node.findAll(text=True)
+				for sentence in paragraph:
+					if len(sentence) > 100 and self.keyword in sentence:
+						tagList.append(node.findAll(text=True))
 		return tagList
 
 	# todo to filter out those without http infront of the link
-	def scrapeLinks(self):
+	def scrapeLinks(self, absoluteLink):
 		sanitisedLinkList = []
-
+		
 		if self.content is not None:
 			unsanitisedLinkList = self.content.find_all('a')
 			for a in unsanitisedLinkList:
 				item = a.get("href")
 				if item is not None:
 					if not "http" in item:
-						item = "http://www.bbc.com" + item
+						item = absoluteLink + item
 					sanitisedLinkList.append(item)
 			return sanitisedLinkList
 
@@ -50,22 +60,21 @@ class Scraper:
 		date = ""
 
 		dict = {}
-
 		h1List = self.scrape('h1')
-		print h1List
 
 		for item in h1List:
 			title = item.encode_contents()
 			if listOfKnownHeaders in item:
-				print item.encode_contents()
+				# print(item.encode_contents())
 				title = item.encode_contents()
 				
 		tempContent = self.scrape('p')
 		if self.content is not None:
 			for node in self.content.findAll('p'):
 				paragraph = node.findAll(text=True)
-				if self.checkIfContainsKeywordPerParagraph(paragraph):
-					contents.append(node.findAll(text=True))
+				for sentence in paragraph:
+					if self.checkIfContainsKeywordPerParagraph(sentence):
+						contents.append(node.findAll(text=True))
 
 			tempDivContents = self.content.findAll('div')
 			for node in tempDivContents:
@@ -77,18 +86,15 @@ class Scraper:
 			dict["content"] = contents
 			dict["date_created"] = date
 			return dict
-
 		return None
 
 
 	def checkIfContainsKeywordPerParagraph(self, sentence):
-		#to lower
 		if self.keyword in sentence:
 			return True
-		else:
-			return False
+		return False
 
 if __name__ == '__main__':
-	scraper = Scraper("https://www.bbc.com/news/world-asia-44757804")
-	dictionary = scraper.scrapeBBCNewsArticle()
-	print dictionary
+	scraper = Scraper("https://www.bbc.com/news/world-asia-44757804", "flood")
+	dictionary = scraper.scrape('p')
+	print(dictionary)
