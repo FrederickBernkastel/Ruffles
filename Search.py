@@ -63,16 +63,22 @@ class Graph:
     # Creates graph of nodes
     def processNodes(self,csvFile,csvReader):
         # Extract weights for softmax
-        weight_l = []
+        self.art_weight_d = {}
+        prev_art = ""
+        curr_weight_l = []
         for row in csvReader:
-            weight_l.append(int(row[2]))
-        weight_l = np.asarray(weight_l)
-        softmax_denom = np.sum(np.exp(weight_l))
-        
+            if row[3] != prev_art:
+                if prev_art != "":
+                    self.art_weight_d[prev_art] = np.sum(np.exp(curr_weight_l))
+                curr_weight_l = [int(row[2])]
+                prev_art = row[3]
+            else:
+                curr_weight_l.append(int(row[2]))
+        self.art_weight_d[prev_art] = np.max(np.exp(curr_weight_l))
         
         csvFile.seek(0)
         for row in csvReader:
-            self.__processNode(row,softmax_denom)
+            self.__processNode(row)
             
         # Sorts all adjacent nodes for every node (for faster search traversal)
         self.__postProcessNodes()
@@ -80,12 +86,11 @@ class Graph:
         
         
     # Factory method to create / update a single Node
-    def __processNode(self,row_l,softmax_denom):
+    def __processNode(self,row_l):
         if len(row_l) != self.dataNumOfCols:
             raise Exception("Unknown file format with wrong number of columns")
         word,tag,weight,link,dateCreated = row_l
         # pre-process data
-        weight = np.exp(int(weight)) / softmax_denom
         dateCreated = [int(item) for item in dateCreated.split("/")]
         dateCreated = date(dateCreated[2],dateCreated[1],dateCreated[0])
         
@@ -104,8 +109,11 @@ class Graph:
         except:
             documentNode = Node(link,dateCreated,isDocument = True)
             self.node_d[link] = documentNode
+        weight = np.exp(int(weight)) / self.art_weight_d[documentNode.key]
         wordNode.update(documentNode,weight)
         documentNode.update(wordNode,weight)
+        
+
     
 
         
