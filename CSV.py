@@ -24,10 +24,13 @@ class CSV:
 
     def save(self):
         file = open(self.link, 'w')
-        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer = csv.DictWriter(file, fieldnames=self.fieldnames)
 
         for item in self.content:
-            writer.writerow(item)
+            try:
+                writer.writerow(item)
+            except UnicodeEncodeError:
+                pass
 
         file.close()
 
