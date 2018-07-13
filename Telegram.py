@@ -6,6 +6,8 @@
 
 """
     Telegram Bot
+        For cached messages, visit
+            https://api.telegram.org/bot578916903:AAGoabI2IFRwP20pwm7NkgKz0XU5_3GWshg/getUpdates
 """
 # Imports
 import telegram
@@ -14,11 +16,13 @@ import logging
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
 
-
+# Constants definition
+BOT_NAME = "@SaucePlzBot"
+STICKER_SORRY = "CAADBAADQgADhFWxCPtLoArvRshSAg"
 
 # Set up bot
 def bot_activate():
-    if False:
+    if True:
         bot = telegram.Bot(token='578916903:AAGoabI2IFRwP20pwm7NkgKz0XU5_3GWshg')
         updater = Updater(token='578916903:AAGoabI2IFRwP20pwm7NkgKz0XU5_3GWshg')
         dispatcher = updater.dispatcher
@@ -26,15 +30,26 @@ def bot_activate():
         print(bot.get_me())
     
     
-    # Define bot response
+    # Define bot responses
     def greeting_f(bot, update):
-        bot.send_message(chat_id=update.message.chat_id, text="Hi there, I'm here for all your sauce-related needs")
+        bot.send_message(chat_id=update.message.chat_id, text="Hi there %s, I'm here for all your sauce-related needs"%(update.message.from_user.first_name))
     
     def unknown(bot, update):
-        bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
+        bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.",reply_to_message_id=update.message.message_id)
+        bot.send_sticker(chat_id=update.message.chat_id,sticker=STICKER_SORRY)
         
     def message_response_f(bot,update):
-        bot.send_message(chat_id=update.message.chat_id, text=update.message.text)
+        # Bot was directly referenced here
+        if update.message.text[:len(BOT_NAME)] == BOT_NAME:
+            query = update.message.text[len(BOT_NAME)+1:]
+            query_l = query.split(" ")[0].lower()
+            msg = update.message.text
+            # Greetings
+            if query_l in greetings_l and len(query_l) < 2:
+                msg = "Hi there, I'm here for all your sauce-related needs"
+            bot.send_message(chat_id=update.message.chat_id, text=msg)
+            
+        
     
     # Define Command Keywords
     greetings_l = ['hi','hello','bonjour','yo','hey']
@@ -68,5 +83,5 @@ def bot_activate():
 """
     End of Telegram Bot
 """
-
+bot_activate()
 
