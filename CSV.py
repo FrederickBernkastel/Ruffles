@@ -13,14 +13,14 @@ class CSV:
 
     def displayValues(self):
         if self.content is not None:
-            print "These are the field names:"
-            print self.fieldnames
+            print("These are the field names:")
+            print(self.fieldnames)
 
-            print "These are the data inside the csv file"
+            print("These are the data inside the csv file")
             for item in self.content:
-                print item
+                print(item)
         else:
-            print "Nothing in the list right now."
+            print("Nothing in the list right now.")
 
     def save(self):
         file = open(self.link, 'w')
