@@ -25,7 +25,7 @@ class CSV:
     def save(self):
         file = open(self.link, 'w')
         writer = csv.DictWriter(file, fieldnames=self.fieldnames)
-
+        
         for item in self.content:
             try:
                 writer.writerow(item)
