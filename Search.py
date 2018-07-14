@@ -18,7 +18,7 @@ FILE_NAME = "Search Data.csv"
 FILE_ENCODING = "UTF-8-sig"
 RECENT_DAYS = 30
 DATA_NUM_OF_COLS = 5
-STARTING_ENERGY = 10000
+STARTING_ENERGY = 100000
 THRESHOLD = 1
 DEGREE_INCREMENT = .1
 
@@ -69,12 +69,18 @@ class Graph:
         for row in csvReader:
             if row[3] != prev_art:
                 if prev_art != "":
-                    self.art_weight_d[prev_art] = np.sum(np.exp(curr_weight_l))
+                    try:
+                        self.art_weight_d[prev_art] = max(np.exp(curr_weight_l))
+                    except:
+                        pass
                 curr_weight_l = [int(row[2])]
                 prev_art = row[3]
             else:
                 curr_weight_l.append(int(row[2]))
-        self.art_weight_d[prev_art] = np.max(np.exp(curr_weight_l))
+        try:
+            self.art_weight_d[prev_art] = max(np.exp(curr_weight_l))
+        except:
+            pass
         
         csvFile.seek(0)
         for row in csvReader:
@@ -109,7 +115,7 @@ class Graph:
         except:
             documentNode = Node(link,dateCreated,isDocument = True)
             self.node_d[link] = documentNode
-        weight = np.exp(int(weight)) / self.art_weight_d[documentNode.key]
+        weight = np.exp(int(weight)) * 2 / (self.art_weight_d[documentNode.key] + np.exp(int(weight)))
         wordNode.update(documentNode,weight)
         documentNode.update(wordNode,weight)
         
@@ -182,7 +188,6 @@ procedure energize(energy E, node nk){
 Nk          Set of all neghibour nodes of nk
 T           Constant threshold value
 energy      Data structure holding energy values
-
      """
     # Sorts adjacent nodes based on their weight
     def __postProcessNodes(self):
@@ -211,19 +216,3 @@ def load_csv(f = FILE_NAME,enc = FILE_ENCODING):
         print(graph)
     return graph
         
-
-
-    
-
-g = load_csv()
-print("returned " + str(g.search("fox hunting brown hens")))
-
-
-
-
-
-
-
-
-
-
