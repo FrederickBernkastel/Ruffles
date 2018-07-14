@@ -3,10 +3,10 @@ from Json import CustomJSONFormatter
 from CSV import CSV
 import POS
 import unicodedata
+import _thread
 
 class Crawler:
-	def __init__(self, link, depth, sampleSize, keyword):
-		self.link = link
+	def __init__(self, depth, sampleSize, keyword):
 		self.depth = depth
 		self.contents = []
 		self.crawlContents = []
@@ -24,7 +24,7 @@ class Crawler:
 
 	def start(self):
 		urlsToCrawl = []
-		json = CustomJSONFormatter(keyword)
+		json = CustomJSONFormatter(self.keyword)
 		articles = json.getValues("articles")
 
 		for item in articles:
@@ -62,18 +62,28 @@ class Crawler:
 			item2 = self.contents[i]
 			url = urlsToCrawl[i]
 
-			print("Length")
-			print(len(self.contents))
-			print(len(self.titles))
-			print(len(urlsToCrawl))
-
 			listOfKeysToUpdateUrl = []
-			for node in item2:
-				if not isinstance(node, unicode):
-					sentence = node.find_all(text=True)
-					for minisentence in sentence:
-						tempDictForContents = POS.POS(minisentence, True)
+
+			if item2 is not None:
+				for node in item2:
+					if not isinstance(node, str):
+						sentence = node.find_all(text=True)
+						for minisentence in sentence:
+							tempDictForContents = POS.POS(minisentence, True)
+							keys = tempDictForContents.keys()
+							for i in keys:
+								listUrl = (i, url)
+								if listUrl not in posDict:
+									posDict[listUrl] = tempDictForContents[i]
+								else:
+									posDict[listUrl] = posDict[listUrl] + tempDictForContents[i]
+								listOfKeysToUpdateUrl.append(listUrl)
+							break
+
+					elif isinstance(node, str):
+						tempDictForContents = POS.POS(item2)
 						keys = tempDictForContents.keys()
+
 						for i in keys:
 							listUrl = (i, url)
 							if listUrl not in posDict:
@@ -82,20 +92,6 @@ class Crawler:
 								posDict[listUrl] = posDict[listUrl] + tempDictForContents[i]
 							listOfKeysToUpdateUrl.append(listUrl)
 						break
-
-				elif isinstance(node, str):
-					tempDictForContents = POS.POS(item2)
-					keys = tempDictForContents.keys()
-
-					for i in keys:
-						listUrl = (i, url)
-						if listUrl not in posDict:
-							posDict[listUrl] = tempDictForContents[i]
-						else:
-							posDict[listUrl] = posDict[listUrl] + tempDictForContents[i]
-						listOfKeysToUpdateUrl.append(listUrl)
-					break
-
 	
 		self.crawlContents = self.contents
 		keys = posDict.keys()
@@ -112,7 +108,12 @@ class Crawler:
 			newDict["Tag"] = i[0][1]
 			newDict["Weight"] = posDict[i]
 			newDict["Link"] = i[1]
-			newDict["DateCreated"] = self.datecreated[i[1]]
+
+			date = self.datecreated[i[1]]
+			dates = date.split("T")
+			dates2 = dates[0].split("-")
+
+			newDict["DateCreated"] = dates2[2] + "/" + dates2[1] + "/" + dates2[0]
 
 			self.csvFile.push(newDict)	
 		self.csvFile.save()
@@ -124,7 +125,7 @@ class Crawler:
 		return sentence.lower()
 
 	def crawl(self, link, depth, keyword, posDict):
-		print("Depth of : " + str(depth) + link)
+		print("Depth of " + str(depth) + " : "+ link)
 
 		if link in self.linksCrawled:
 			return
@@ -133,7 +134,7 @@ class Crawler:
 			if link[:100] == item[:100]:
 				return
 
-		if depth > self.depth:
+		if depth >= self.depth:
 			return
 
 		self.linksCrawled.append(link)
@@ -159,13 +160,15 @@ class Crawler:
 							posDict[listUrl] = posDict[listUrl] + tempDictForContents[i]
 						print(item)
 
-		if len(self.crawlContents) + len(self.contents) <= self.sampleSize and len(articleDictionary) != 0 :
+		if len(self.crawlContents) + len(self.contents) <= self.sampleSize and len(articleDictionary) != 0 and len(self.linksCrawled) <= self.sampleSize:
 			self.linksCrawled.append(link)
 			if hyperLinkList is not None:
 				for link in hyperLinkList:
 					if link not in self.linksCrawled:
 						if "ad" not in link:
-							self.crawl(link, depth + 1, self.keyword, posDict)
+							_thread.start_new_thread(self.crawl,(link, depth + 1, self.keyword, posDict,))
+
+							# self.crawl(link, depth + 1, self.keyword, posDict)
 	
 	def getAbsoluteLink(self, link):
 		pathList = link.split("/")
@@ -175,7 +178,7 @@ class Crawler:
 
 
 if __name__ == '__main__':
-	keyword = "world cup"
+	keyword = "world cup winner"
 	string  = "https://newsapi.org/v2/everything?q=" + keyword + "&sortBy=publishedAt&language=en&apiKey=a45eaf5ba58b49b98ff5c5052340e8b9"
-	crawler = Crawler("http://www.businessinsider.com/13-burning-personal-finance-questions-2013-3/?IR=T", 4 , 100, keyword)
+	crawler = Crawler(2 , 100, keyword)
 	crawler.start()
