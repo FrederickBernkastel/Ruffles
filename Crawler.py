@@ -3,6 +3,7 @@ from Json import CustomJSONFormatter
 from CSV import CSV
 import POS
 import unicodedata
+from datetime import date, datetime, timedelta
 import _thread
 
 class Crawler:
@@ -19,8 +20,8 @@ class Crawler:
 		self.results = {}
 
 		self.knownlinks = [".mp4"]
-
-		self.csvFile = CSV(keyword + ".csv", ["Word", "Tag", "Weight", "Link", "DateCreated"])
+		today = str(date.today())
+		self.csvFile = CSV(keyword + "," + today + ".csv", ["Word", "Tag", "Weight", "Link", "DateCreated"])
 
 	def start(self):
 		urlsToCrawl = []
@@ -36,7 +37,6 @@ class Crawler:
 		# for item in urlsToCrawl:
 		# 	# print(item)
 		# 	self.crawl(item, 0 , self.keyword, self.datecreated[item])
-		
 		print("")
 		print("Links crawled:")
 
