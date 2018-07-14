@@ -18,6 +18,7 @@ import logging
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
 import singlish
+from Scraper import Scraper
 
 # Constants definition
 BOT_NAME = "@SaucePlzBot"
@@ -58,10 +59,29 @@ def bot_activate():
                 entry = Entry(msg)
                 item = entry.start()
 
+
+                scraper = Scraper(item, "")
+                dictionary = scraper.scrape('p')
+
+                textList = []
+                # print(dictionary)
+                for tempItem in dictionary:
+                    if isinstance(tempItem, list):
+                        for item2 in tempItem:
+                            item2 = item2.replace("  ", "").replace("\n", " ").replace("\r", " ")
+                            textList.append(item2)
+                    else:
+                        textList.append(tempItem)
+
+                for tempItem in textList:
+                    print(tempItem)
+
                 # Greetings
                 if query_l in greetings_l and len(query_l) < 2:
                     msg = "Hi there, I'm here for all your sauce-related needs"
-                bot.send_message(chat_id=update.message.chat_id, text=item)
+
+                for tempItem in textList:
+                    bot.send_message(chat_id=update.message.chat_id, text=tempItem)
             except ValueError:
                 bot.send_message(chat_id=update.message.chat_id, text="Sorry I could not find anything that is related to : " + originalMessage)
 
