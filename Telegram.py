@@ -10,11 +10,14 @@
             https://api.telegram.org/bot578916903:AAGoabI2IFRwP20pwm7NkgKz0XU5_3GWshg/getUpdates
 """
 # Imports
+
+from Entry import Entry
 import telegram
 from telegram.ext import Updater
 import logging
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
+import singlish
 
 # Constants definition
 BOT_NAME = "@SaucePlzBot"
@@ -28,8 +31,7 @@ def bot_activate():
         dispatcher = updater.dispatcher
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.INFO)
         print(bot.get_me())
-    
-    
+
     # Define bot responses
     def greeting_f(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text="Hi there %s, I'm here for all your sauce-related needs"%(update.message.from_user.first_name))
@@ -44,12 +46,26 @@ def bot_activate():
             query = update.message.text[len(BOT_NAME)+1:]
             query_l = query.split(" ")[0].lower()
             msg = update.message.text
-            # Greetings
-            if query_l in greetings_l and len(query_l) < 2:
-                msg = "Hi there, I'm here for all your sauce-related needs"
-            bot.send_message(chat_id=update.message.chat_id, text=msg)
+
+            bot.send_message(chat_id=update.message.chat_id, text="Please hold on and let me check on that..")
+            msg = msg.replace("SaucePlzBot ", "").replace("@", "")
             
-        
+            try:
+                originalMessage = msg
+                for item in singlish.singlish_l:
+                    msg.replace(item[0], item[1])
+
+                entry = Entry(msg)
+                item = entry.start()
+
+                # Greetings
+                if query_l in greetings_l and len(query_l) < 2:
+                    msg = "Hi there, I'm here for all your sauce-related needs"
+                bot.send_message(chat_id=update.message.chat_id, text=item)
+            except ValueError:
+                bot.send_message(chat_id=update.message.chat_id, text="Sorry I could not find anything that is related to : " + originalMessage)
+
+            
     
     # Define Command Keywords
     greetings_l = ['hi','hello','bonjour','yo','hey']
@@ -84,4 +100,3 @@ def bot_activate():
     End of Telegram Bot
 """
 bot_activate()
-
