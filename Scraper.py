@@ -2,8 +2,12 @@ from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup
-import urllib2
-import httplib
+import re
+import urllib
+from urllib.request import urlopen
+import http.client
+import string
+from ast import literal_eval
 
 # pip install BeautifulSoup4
 
@@ -15,14 +19,18 @@ class Scraper:
 
 	def store(self, link):
 		try:
-			bs = BeautifulSoup(urllib2.build_opener(urllib2.HTTPCookieProcessor).open(link),'html.parser')
+			# bs = BeautifulSoup(urllib.build_opener(urllib.HTTPCookieProcessor).open(link),'html.parser')
+			bs = BeautifulSoup(urlopen(link) , "html.parser")
 			return bs
-		except urllib2.HTTPError,e:
+		except urllib.error.HTTPError:
 			return None
-		except urllib2.URLError, e:
+		except urllib.error.URLError:
 			return None
 		except ValueError:
 			return None
+		except:
+			return None
+
 
 	def scrape(self, tag):
 		tagList = []
@@ -30,14 +38,17 @@ class Scraper:
 			for node in self.content.findAll(tag):
 				paragraph = node.findAll(text=True)
 				for sentence in paragraph:
-					if len(sentence) > 100 and self.keyword in sentence:
-						tagList.append(node.findAll(text=True))
+					keywordList = self.keyword.split(" ")
+					for keyword in keywordList:
+						if keyword in sentence.lower() and len(sentence) > 100:
+							tagList.append(node.findAll(text=True))
+							break
 		return tagList
 
 	# todo to filter out those without http infront of the link
 	def scrapeLinks(self, absoluteLink):
 		sanitisedLinkList = []
-		
+
 		if self.content is not None:
 			unsanitisedLinkList = self.content.find_all('a')
 			for a in unsanitisedLinkList:
@@ -95,6 +106,17 @@ class Scraper:
 		return False
 
 if __name__ == '__main__':
-	scraper = Scraper("https://www.bbc.com/news/world-asia-44757804", "flood")
+	scraper = Scraper("http://www.businessinsider.com/13-burning-personal-finance-questions-2013-3/?IR=T", "")
 	dictionary = scraper.scrape('p')
-	print(dictionary)
+
+	list = []
+	# print(dictionary)
+	for item in dictionary:
+		for item2 in item:
+			item2 = item2.replace("  ", "").replace("\n", " ").replace("\r", " ")
+			list.append(item2)
+
+	for item in list:
+		print(item)
+			
+	
